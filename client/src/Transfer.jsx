@@ -17,17 +17,24 @@ function Transfer({ address, setBalance, privateKey }) {
       // For reference: https://gist.github.com/nakov/1dcbe26988e18f7a4d013b65d8803ffc
 
       // Get message hash
-      const messageHash = toHex(keccak256(Uint8Array.from(JSON.stringify({
-        addrss: address,
+      let message = {
+        address: address,
         amount: parseInt(sendAmount),
         recipient: recipient
-      }))));
+      };
+      message = JSON.stringify(message);
+      message = Uint8Array.from(message);
+      message = keccak256(message);
+      toHex(message);
+      const messageHash = message;
 
       console.log(messageHash);
       
       // Generate signature
       const signature = secp256k1.sign(messageHash, privateKey);
       console.log(signature);
+
+      console.log(signature.recoverPublicKey());
 
       const {
         data: { balance },

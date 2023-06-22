@@ -22,6 +22,7 @@ function App() {
         setBalance={setBalance} 
         address={address} 
         privateKey={privateKey}
+        setPrivateKey={setPrivateKey}
       />
     </div>
   );

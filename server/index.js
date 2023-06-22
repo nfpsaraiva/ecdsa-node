@@ -3,6 +3,7 @@ const app = express();
 const cors = require("cors");
 const port = 3042;
 const {secp256k1} = require("ethereum-cryptography/secp256k1");
+const JSONBig = require("json-bigint");
 
 
 app.use(cors());
@@ -35,20 +36,18 @@ app.post("/send", (req, res) => {
   // TODO: get a signature from the client-side application
   // recover the public address from the signature
 
-  const { sender, recipient, amount, signature, messageHash } = req.body;
+  console.log('begin');
+  const { sender, recipient, amount, signature } = req.body;
 
   // Validate signature
-  console.log(signature);
-  const isSigned = secp256k1.verify(signature, messageHash, sender);
+  console.log("body: ", req.body);
+
+  console.log("signature", JSONBig.parse(signature));
+
+  const isValid = secp256k1.verify(JSONBig.parse(signature));
+  console.log(isValid);
 
   // Return invalid response if signature fails
-  if (!isSigned) {
-    res.status(400).send({
-      message: "Invalid signature"
-    });
-  }
-
-  console.log('is signed: ', isSigned);
 
   setInitialBalance(sender);
   setInitialBalance(recipient);

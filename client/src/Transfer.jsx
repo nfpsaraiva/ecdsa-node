@@ -15,19 +15,26 @@ function Transfer({ address, setBalance, privateKey }) {
     evt.preventDefault();
 
     try {
+      // For reference: https://github.com/ethereum/js-ethereum-cryptography#secp256k1-curve
+      // For reference: https://gist.github.com/nakov/1dcbe26988e18f7a4d013b65d8803ffc
+      // For reference: https://thecodeway.hashnode.dev/building-an-ecdsa-wallet-with-javascript
+      // For reference: https://github.com/rrsingh11/ecdsa-node
 
-      // My code
+      // Create message data
       const data = {
         sender: address,
         amount: parseInt(sendAmount),
         recipient
       }
 
+      // Create Message & Signature (discontructed)
       const messageHash = toHex(keccak256(utf8ToBytes(JSON.stringify(data))));
       const signature = secp256k1.sign(messageHash, privateKey);
       const signatureR = signature.r.toString();
       const signatureS = signature.s.toString();
+      const signatureRecovery = signature.recovery;
 
+      // Send transaction
       const {
         data: { balance },
       } = await server.post(`send`, {
@@ -35,6 +42,7 @@ function Transfer({ address, setBalance, privateKey }) {
         messageHash,
         signatureR,
         signatureS,
+        signatureRecovery,
       });
 
       setBalance(balance);

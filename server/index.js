@@ -4,6 +4,7 @@ const cors = require("cors");
 const port = 3042;
 const {secp256k1} = require("ethereum-cryptography/secp256k1");
 const JSONBig = require("json-bigint");
+const {toHex} = require("ethereum-cryptography/utils");
 
 
 app.use(cors());
@@ -34,15 +35,23 @@ app.get("/balance/:address", (req, res) => {
 
 app.post("/send", (req, res) => {
   
-  // My code
-  const { data, messageHash, signatureR, signatureS } = req.body;
+  // Get request 
+  const { data, messageHash, signatureR, signatureS, signatureRecovery } = req.body;
   const { sender, amount, recipient } = data;
 
-  const signature = new secp256k1.Signature(BigInt(signatureR), BigInt(signatureS));
+  // Reconstruct signature
+  const signature = new secp256k1.Signature(BigInt(signatureR), BigInt(signatureS), signatureRecovery);
 
-  const isValid = secp256k1.verify(signature, messageHash, sender);
-  if (!isValid) {
-    res.status(400).send({ message: "Invalid signature "});
+  // Validate sender
+  const recoveredPublicKey = signature.recoverPublicKey(messageHash).toHex();
+  if (recoveredPublicKey !== sender) {
+    res.status(400).send( {message: "Invalid sender" });
+  }
+
+  // Validate signature
+  const isSignatureValid = secp256k1.verify(signature, messageHash, sender);
+  if (!isSignatureValid) {
+    res.status(400).send({ message: "Invalid signature"});
   }
 
   setInitialBalance(sender);

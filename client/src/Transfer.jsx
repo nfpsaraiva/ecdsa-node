@@ -3,7 +3,7 @@ import { keccak256 } from "ethereum-cryptography/keccak";
 import { secp256k1 } from "ethereum-cryptography/secp256k1";
 import { toHex, utf8ToBytes } from "ethereum-cryptography/utils";
 import server from "./server";
-import JSONbig from "json-bigint";
+// import JSONbig from "json-bigint";
 
 function Transfer({ address, setBalance, privateKey }) {
   const [sendAmount, setSendAmount] = useState("");
@@ -15,42 +15,32 @@ function Transfer({ address, setBalance, privateKey }) {
     evt.preventDefault();
 
     try {
-      // For reference: https://github.com/ethereum/js-ethereum-cryptography#secp256k1-curve
-      // For reference: https://gist.github.com/nakov/1dcbe26988e18f7a4d013b65d8803ffc
-      // For reference: https://thecodeway.hashnode.dev/building-an-ecdsa-wallet-with-javascript
 
-      console.log('privateKey', privateKey);
-  
+      // My code
       const data = {
         sender: address,
         amount: parseInt(sendAmount),
         recipient
       }
-      console.log("data", data);
 
       const messageHash = toHex(keccak256(utf8ToBytes(JSON.stringify(data))));
-      console.log('messageHash', messageHash);
-
-      let signature = secp256k1.sign(messageHash, privateKey);
-      signature = JSONbig.stringify(signature);
-      console.log('signature', signature);
-
-
-      console.log('sending');
+      const signature = secp256k1.sign(messageHash, privateKey);
+      const signatureR = signature.r.toString();
+      const signatureS = signature.s.toString();
 
       const {
         data: { balance },
       } = await server.post(`send`, {
         data,
         messageHash,
-        signature,
+        signatureR,
+        signatureS,
       });
 
       setBalance(balance);
       
     } catch (ex) {
-      console.log(ex.toString());
-      // alert(ex.response.data.message);
+      alert(ex.response.data.message);
     }
   }
 

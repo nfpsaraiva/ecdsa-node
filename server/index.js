@@ -33,21 +33,17 @@ app.get("/balance/:address", (req, res) => {
 });
 
 app.post("/send", (req, res) => {
-  // TODO: get a signature from the client-side application
-  // recover the public address from the signature
+  
+  // My code
+  const { data, messageHash, signatureR, signatureS } = req.body;
+  const { sender, amount, recipient } = data;
 
-  console.log('begin');
-  const { sender, recipient, amount, signature } = req.body;
+  const signature = new secp256k1.Signature(BigInt(signatureR), BigInt(signatureS));
 
-  // Validate signature
-  console.log("body: ", req.body);
-
-  console.log("signature", JSONBig.parse(signature));
-
-  const isValid = secp256k1.verify(JSONBig.parse(signature));
-  console.log(isValid);
-
-  // Return invalid response if signature fails
+  const isValid = secp256k1.verify(signature, messageHash, sender);
+  if (!isValid) {
+    res.status(400).send({ message: "Invalid signature "});
+  }
 
   setInitialBalance(sender);
   setInitialBalance(recipient);
